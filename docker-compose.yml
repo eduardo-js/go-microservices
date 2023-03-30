@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  broker-service:
+    build:
+      context: ./broker-service
+    restart: always
+    ports:
+      - "5000:5000"
+    deploy:
+      mode: replicated
+      replicas: 1
