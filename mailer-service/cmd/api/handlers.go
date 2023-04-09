@@ -23,10 +23,10 @@ func (app *Config) SendMail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	msg := Message{
-		FromAddress: requestPayload.From,
-		To:          requestPayload.To,
-		Subject:     requestPayload.Subject,
-		Data:        requestPayload.Message,
+		From:    requestPayload.From,
+		To:      requestPayload.To,
+		Subject: requestPayload.Subject,
+		Data:    requestPayload.Message,
 	}
 	err = app.Mailer.SendSMTPMessage(msg)
 	if err != nil {

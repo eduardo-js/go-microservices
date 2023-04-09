@@ -15,7 +15,7 @@ func main() {
 	app := Config{
 		Mailer: createMail(),
 	}
-
+	log.Printf("Starting mailer @ %s\n", env.PORT)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", env.PORT),
 		Handler: app.routes(),
@@ -24,20 +24,19 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	log.Println("Mailer service running on port", env.PORT)
 }
 
 func createMail() Mail {
 	mailerPort, _ := strconv.Atoi(env.MAIL_PORT)
 	m := Mail{
-		Port:        mailerPort,
-		Domain:      env.DOMAIN,
-		Host:        env.HOST,
-		Username:    env.USERNAME,
-		Password:    env.PASSWORD,
-		Encryption:  env.ENCRYPTION,
-		FromName:    env.FROM_NAME,
-		FromAddress: env.FROM_ADDRESS,
+		Port:       mailerPort,
+		Domain:     env.DOMAIN,
+		Host:       env.HOST,
+		Username:   env.USERNAME,
+		Password:   env.PASSWORD,
+		Encryption: env.ENCRYPTION,
+		FromName:   env.FROM_NAME,
+		From:       env.FROM_ADDRESS,
 	}
 	return m
 }

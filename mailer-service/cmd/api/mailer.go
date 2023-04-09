@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"time"
 
@@ -10,18 +11,18 @@ import (
 )
 
 type Mail struct {
-	Domain      string
-	Host        string
-	Port        int
-	Username    string
-	Password    string
-	Encryption  string
-	FromAddress string
-	FromName    string
+	Domain     string
+	Host       string
+	Port       int
+	Username   string
+	Password   string
+	Encryption string
+	From       string
+	FromName   string
 }
 
 type Message struct {
-	FromAddress string
+	From        string
 	FromName    string
 	To          string
 	Subject     string
@@ -31,8 +32,10 @@ type Message struct {
 }
 
 func (m *Mail) SendSMTPMessage(msg Message) error {
-	if msg.FromAddress == "" {
-		msg.FromAddress = m.FromAddress
+	fmt.Printf("%+v\n", msg)
+
+	if msg.From == "" {
+		msg.From = m.From
 	}
 	if msg.FromName == "" {
 		msg.FromName = m.FromName
@@ -67,12 +70,11 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 	}
 
 	email := mail.NewMSG()
-	email.SetFrom(msg.FromAddress).
+	email.SetFrom(msg.From).
 		AddTo(msg.To).
 		SetSubject(msg.Subject).
 		SetBody(mail.TextPlain, plainMessage).
 		AddAlternative(mail.TextHTML, formattedMessage)
-
 	if len(msg.Attachments) > 0 {
 		for _, v := range msg.Attachments {
 			email.AddAttachment(v)
@@ -80,6 +82,8 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 	}
 	err = email.Send(smtpClient)
 	if err != nil {
+		fmt.Println(err)
+
 		return err
 	}
 	return nil
