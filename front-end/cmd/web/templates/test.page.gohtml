@@ -9,6 +9,7 @@
                 <a id="brokerBtn" class="btn btn-secondary" href="javascript:void(0)">Broker Service</a>
                 <a id="authBrokerBtn" class="btn btn-secondary" href="javascript:void(0)">Auth Broker Service</a>
                 <a id="logBrokerBtn" class="btn btn-secondary" href="javascript:void(0)">Logger Service</a>
+                <a id="mailBrokerBtn" class="btn btn-secondary" href="javascript:void(0)">Mailer Service</a>
                 <div id="output" class="mt-5" style="outline: 1px solid silver; padding: 2em;">
                     <span class="text-muted">Output shows here...</span>
                 </div>
@@ -36,6 +37,7 @@
     let brokerBtn = document.getElementById("brokerBtn");
     let authBrokerBtn = document.getElementById("authBrokerBtn");
     let logBrokerBtn = document.getElementById("logBrokerBtn");
+    let mailBrokerBtn = document.getElementById("mailBrokerBtn");
     let output = document.getElementById("output");
     let payload = document.getElementById("payload");
     let received = document.getElementById("received");
@@ -98,6 +100,41 @@
         log: {
             name: "test-event",
             data: "test-data"
+        }
+      }
+      const headers = new Headers();
+      headers.append("Content-Type", "application/json");
+
+        const body = {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers
+        }
+
+      fetch("http:\/\/localhost:5000/handle", body)
+      .then(response => response.json())
+      .then(data => {
+        payload.innerHTML = JSON.stringify(payload,null,2),
+        received.innerHTML = JSON.stringify(data, null, 2);
+        if (data.error){
+           output.innerHTML = data.message;
+        } else {
+            output.innerHTML = data.message;
+        }
+      })
+      .catch(error => {
+        output.innerHTML = error;
+      })
+    })
+
+    mailBrokerBtn.addEventListener("click", function() {
+      const payload = {
+        action: "mail",
+        mail: {
+          from: "sender@test.com",
+          to: "receiver@test.com",
+          subject:"test subject",
+          message:"test message",
         }
       }
       const headers = new Headers();
