@@ -12,6 +12,7 @@ services:
       replicas: 1
     environment:
       PORT: "80"
+      RABBITMQ_CONNECTION_STRING: "amqp://guest:guest@rabbitmq"
 
   logger-service:
     build:
@@ -59,6 +60,16 @@ services:
       FROM_NAME: "Mail Hog"
       FROM_ADDRESS: "mail@test.com"
 
+  listener-service:
+    build:
+      context: ./listener-service
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      RABBITMQ_CONNECTION_STRING: "amqp://guest:guest@rabbitmq"
+
   postgres:
     image: 'postgres:14.2'
     ports:
@@ -94,3 +105,15 @@ services:
       - "8025:8025"
     environment:
       PORT: "80"
+
+  rabbitmq:
+    image: 'rabbitmq:3.9-alpine'
+    ports:
+      - "5672:5672"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      PORT: "80"
+    volumes:
+      - ./db-data/rabbitmq/:/var/lib/rabbitmq/
