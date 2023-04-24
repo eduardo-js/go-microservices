@@ -2,12 +2,18 @@ package main
 
 import (
 	"broker-service/event"
+	"broker-service/logs"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/rpc"
+	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type RequestPayload struct {
@@ -54,7 +60,8 @@ func (app *Config) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		app.logPayloadRPC(w, requestPayload.Log)
+		// app.logPayloadRPC(w, requestPayload.Log)
+		app.logPayloadGRPC(w, requestPayload.Log)
 	case "mail":
 		app.sendEmail(w, requestPayload.Mail)
 
@@ -194,4 +201,38 @@ func (app *Config) pushToQueue(name, msg string) error {
 		return err
 	}
 	return nil
+}
+
+func (app *Config) logPayloadGRPC(w http.ResponseWriter, entry LogPayload) {
+
+	conn, err := grpc.Dial("logger-service:50001", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	fmt.Println("oi5")
+	defer conn.Close()
+	fmt.Println("oi6")
+
+	c := logs.NewLogServiceClient(conn)
+
+	fmt.Println("oi7")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_, err = c.WriteLog(ctx, &logs.LogRequest{
+		LogEntry: &logs.Log{
+			Name: entry.Name,
+			Data: entry.Data,
+		},
+	})
+	fmt.Println("oi8")
+
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "logged"
+	app.writeJSON(w, http.StatusAccepted, payload)
 }
