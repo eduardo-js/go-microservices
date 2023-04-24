@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/rpc"
 )
 
 type RequestPayload struct {
@@ -53,7 +54,7 @@ func (app *Config) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		app.logPayload(w, requestPayload.Log)
+		app.logPayloadRPC(w, requestPayload.Log)
 	case "mail":
 		app.sendEmail(w, requestPayload.Mail)
 
@@ -115,6 +116,39 @@ func (app *Config) logPayload(w http.ResponseWriter, entry LogPayload) {
 	resp.Error = false
 	resp.Message = "Authenticated"
 	resp.Data = "Logged successfully via rabbitMQ"
+	app.writeJSON(w, http.StatusAccepted, resp)
+}
+
+type RPCPayload struct {
+	Name string
+	Data string
+}
+
+func (app *Config) logPayloadRPC(w http.ResponseWriter, entry LogPayload) {
+	// err := app.pushToQueue(entry.Name, entry.Data)
+	// if err != nil {
+	// 	app.errorJSON(w, err)
+	// 	return
+	// }
+	// var resp jsonResponse
+	// resp.Error = false
+	// resp.Message = "Authenticated"
+	// resp.Data = "Logged successfully via rabbitMQ"
+	// app.writeJSON(w, http.StatusAccepted, resp)
+	client, err := rpc.Dial("tcp", "logger-service:5001")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	var result string
+	err = client.Call("RPCServer.LogInfo", RPCPayload(entry), &result)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	var resp jsonResponse
+	resp.Error = false
+	resp.Message = result
 	app.writeJSON(w, http.StatusAccepted, resp)
 }
 
