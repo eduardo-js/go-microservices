@@ -77,7 +77,6 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 		app.errorJSON(w, err)
 		return
 	}
-	fmt.Println("b")
 	client := &http.Client{}
 	response, err := client.Do(request)
 	fmt.Println(response, err)
@@ -210,13 +209,10 @@ func (app *Config) logPayloadGRPC(w http.ResponseWriter, entry LogPayload) {
 		app.errorJSON(w, err)
 		return
 	}
-	fmt.Println("oi5")
 	defer conn.Close()
-	fmt.Println("oi6")
 
 	c := logs.NewLogServiceClient(conn)
 
-	fmt.Println("oi7")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	_, err = c.WriteLog(ctx, &logs.LogRequest{
@@ -225,7 +221,6 @@ func (app *Config) logPayloadGRPC(w http.ResponseWriter, entry LogPayload) {
 			Data: entry.Data,
 		},
 	})
-	fmt.Println("oi8")
 
 	if err != nil {
 		app.errorJSON(w, err)
