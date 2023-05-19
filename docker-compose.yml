@@ -117,3 +117,13 @@ services:
       PORT: "80"
     volumes:
       - ./db-data/rabbitmq/:/var/lib/rabbitmq/
+
+  frontend:
+    build:
+      context: ./front-end
+    restart: always
+    ports:
+      - "3000:3000"
+    deploy:
+      mode: replicated
+      replicas: 1
