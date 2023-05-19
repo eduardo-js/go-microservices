@@ -46,7 +46,7 @@
       const body = {
         method: "POST"
       }
-      fetch("http:\/\/localhost:5000", body)
+      fetch({{.BACKEND_URL}}, body)
       .then(response => response.json())
       .then(data => {
         payload.innerHTML = "Empty POST REQUEST"
@@ -79,7 +79,7 @@
             headers
         }
 
-      fetch("http:\/\/localhost:5000/handle", body)
+      fetch({{print .BACKEND_URL "/handle" }}, body)
       .then(response => response.json())
       .then(data => {
         payload.innerHTML = JSON.stringify(payload,null,2),
@@ -111,7 +111,7 @@
             headers
         }
 
-      fetch("http:\/\/localhost:5000/handle", body)
+      fetch({{print .BACKEND_URL "/handle" }}, body)
       .then(response => response.json())
       .then(data => {
         payload.innerHTML = JSON.stringify(payload,null,2),
@@ -146,7 +146,7 @@
             headers
         }
 
-      fetch("http:\/\/localhost:5000/handle", body)
+      fetch({{print .BACKEND_URL "/handle" }}, body)
       .then(response => response.json())
       .then(data => {
         payload.innerHTML = JSON.stringify(payload,null,2),
