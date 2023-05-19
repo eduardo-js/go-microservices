@@ -1,0 +1,130 @@
+version: '3'
+
+services:
+  broker-service:
+    image: eduardojsd/broker-service:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      PORT: "8080"
+      RABBITMQ_CONNECTION_STRING: "amqp://guest:guest@rabbitmq"
+
+  listener-service:
+    image: eduardojsd/listener-service:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      RABBITMQ_CONNECTION_STRING: "amqp://guest:guest@rabbitmq"
+
+  auth-service:
+    image: eduardojsd/auth-service:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
+      PORT: "80"
+
+  logger-service:
+    image: eduardojsd/logger-service:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      PORT: "80"
+      mongoURI: "mongodb://admin:password@mongo:27017/logs"
+      RPC_PORT: "5001"
+      GRPC_PORT: "50001"
+
+  mailer-service:
+    image: eduardojsd/mailer-service:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      PORT: "80"
+      MAIL_PORT: 1025
+      MAIL_DOMAIN: localhost
+      MAIL_HOST: mailhog
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_ENCRYPTION: none
+      FROM_NAME: "Mail Hog"
+      FROM_ADDRESS: "mail@test.com"
+
+  rabbitmq:
+    image: 'rabbitmq:3.9-alpine'
+    ports:
+      - "5672:5672"
+    deploy:
+      mode: global
+    environment:
+      PORT: "80"
+    volumes:
+      - ./db-data/rabbitmq/:/var/lib/rabbitmq/
+
+
+  mailhog:
+    image: 'mailhog/mailhog:latest'
+    deploy:
+      mode: global
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  mongo:
+    image: 'mongo:4.2.16-bionic'
+    ports:
+      - "27017:27017"
+    deploy:
+      mode: replicated
+      replicas: 1
+    volumes:
+      - ./db-data/mongo/:/data/db/
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: logs
+
+  postgres:
+    image: 'postgres:14.2'
+    ports:
+      - "5432:5432"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: users
+    volumes:
+      - ./db-data/postgres/:/var/lib/postgresql/data/
+      
+  frontend:
+    image: eduardojsd/frontend:1.0.3
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      PORT: "3000"
+      BACKEND_URL: "http://backend"
+
+  caddy:
+    image: eduardojsd/micro-caddy:1.0.1
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports: 
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+    external: true
+  caddy_config:
+    external: true
